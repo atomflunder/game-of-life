@@ -1,6 +1,12 @@
+const CELLS_WIDTH: usize = 160;
+const CELLS_HEIGHT: usize = 80;
+const SCREEN_WIDTH: usize = 1600;
+const SCREEN_HEIGHT: usize = 800;
+
 #[derive(Clone)]
+
 pub struct MainGame {
-    pub board: [[bool; 32]; 32],
+    pub board: [[bool; CELLS_WIDTH]; CELLS_HEIGHT],
     pub cycle: usize,
 }
 impl ggez::event::EventHandler<ggez::GameError> for MainGame {
@@ -11,22 +17,37 @@ impl ggez::event::EventHandler<ggez::GameError> for MainGame {
         }
         Ok(())
     }
+
     fn draw(&mut self, ctx: &mut ggez::Context) -> Result<(), ggez::GameError> {
         ggez::graphics::clear(ctx, ggez::graphics::Color::BLACK);
+
         let mut offset = (0.0, 0.0);
         let mut coordinates: (usize, usize) = (0, 0);
+
         let alive_cell = ggez::graphics::Mesh::new_rectangle(
             ctx,
             ggez::graphics::DrawMode::fill(),
-            ggez::graphics::Rect::new(0.0, 0.0, 20.0, 20.0),
-            ggez::graphics::Color::new(0.25, 0.9, 0.25, 1.0),
+            ggez::graphics::Rect::new(
+                0.0,
+                0.0,
+                SCREEN_WIDTH as f32 / CELLS_WIDTH as f32,
+                SCREEN_HEIGHT as f32 / CELLS_HEIGHT as f32,
+            ),
+            ggez::graphics::Color::new(0.9, 0.65, 0.65, 1.0),
         )?;
+
         let dead_cell = ggez::graphics::Mesh::new_rectangle(
             ctx,
             ggez::graphics::DrawMode::fill(),
-            ggez::graphics::Rect::new(0.0, 0.0, 20.0, 20.0),
-            ggez::graphics::Color::new(0.15, 0.15, 0.15, 1.0),
+            ggez::graphics::Rect::new(
+                0.0,
+                0.0,
+                SCREEN_WIDTH as f32 / CELLS_WIDTH as f32,
+                SCREEN_HEIGHT as f32 / CELLS_HEIGHT as f32,
+            ),
+            ggez::graphics::Color::new(0.2, 0.2, 0.2, 1.0),
         )?;
+
         for line in &self.board {
             for cell in line {
                 if *cell {
@@ -42,12 +63,12 @@ impl ggez::event::EventHandler<ggez::GameError> for MainGame {
                         ggez::graphics::DrawParam::new().dest([offset.0, offset.1]),
                     )?;
                 }
-                offset.0 += 20.0;
+                offset.0 += SCREEN_WIDTH as f32 / CELLS_WIDTH as f32;
                 coordinates.0 += 1;
             }
 
             offset.0 = 0.0;
-            offset.1 += 20.0;
+            offset.1 += SCREEN_HEIGHT as f32 / CELLS_HEIGHT as f32;
             coordinates.0 = 0;
             coordinates.1 += 1;
         }
@@ -58,9 +79,15 @@ impl ggez::event::EventHandler<ggez::GameError> for MainGame {
 
 impl MainGame {
     pub fn new() -> ggez::GameResult<MainGame> {
-        let b: [[bool; 32]; 32] = rand::random();
+        let mut b = [[false; CELLS_WIDTH]; CELLS_HEIGHT];
+        b.iter_mut().for_each(|line| {
+            line.iter_mut().for_each(|cell| {
+                *cell = rand::random();
+            })
+        });
         Ok(Self { board: b, cycle: 0 })
     }
+
     pub fn advance_step(&mut self) {
         let mut new_board = self.clone();
         for (i, line) in self.board.iter().enumerate() {
@@ -79,9 +106,11 @@ impl MainGame {
         self.board = new_board.board;
         self.cycle += 1;
     }
+
     fn get_neighbors(&self, coordinates: (usize, usize)) -> usize {
         let mut living_neighbors: usize = 0;
         let mut neighbors: Vec<(usize, usize)> = Vec::new();
+
         if coordinates.0 > 0 {
             neighbors.push((coordinates.0 - 1, coordinates.1));
             if coordinates.1 > 0 {
@@ -106,6 +135,7 @@ impl MainGame {
         if coordinates.1 < self.board[0].len() - 1 {
             neighbors.push((coordinates.0, coordinates.1 + 1));
         }
+
         for neighbor in neighbors {
             if self.board[neighbor.0][neighbor.1] {
                 living_neighbors += 1;
@@ -116,7 +146,9 @@ impl MainGame {
 }
 fn main() {
     let (ctx, event_loop) = ggez::ContextBuilder::new("Game of Life", "atomflunder")
-        .window_mode(ggez::conf::WindowMode::default().dimensions(640.0, 640.0))
+        .window_mode(
+            ggez::conf::WindowMode::default().dimensions(SCREEN_WIDTH as f32, SCREEN_HEIGHT as f32),
+        )
         .window_setup(
             ggez::conf::WindowSetup::default()
                 .title("Game of Life - Cycle: 0")
