@@ -1,6 +1,6 @@
-const CELLS_WIDTH: usize = 160;
-const CELLS_HEIGHT: usize = 80;
-const SCREEN_WIDTH: usize = 1600;
+const CELLS_WIDTH: usize = 40;
+const CELLS_HEIGHT: usize = 40;
+const SCREEN_WIDTH: usize = 800;
 const SCREEN_HEIGHT: usize = 800;
 
 #[derive(Clone)]
@@ -8,13 +8,29 @@ const SCREEN_HEIGHT: usize = 800;
 pub struct MainGame {
     pub board: [[bool; CELLS_WIDTH]; CELLS_HEIGHT],
     pub cycle: usize,
+    pub started: bool,
 }
 impl ggez::event::EventHandler<ggez::GameError> for MainGame {
     fn update(&mut self, ctx: &mut ggez::Context) -> ggez::GameResult {
-        while ggez::timer::check_update_time(ctx, 2) {
-            self.advance_step();
-            ggez::graphics::set_window_title(ctx, &format!("Game of Life - Cycle: {}", self.cycle));
+        while ggez::timer::check_update_time(ctx, 3) {
+            if self.started {
+                self.advance_step();
+                ggez::graphics::set_window_title(
+                    ctx,
+                    &format!("Game of Life - Cycle: {}", self.cycle),
+                );
+            }
         }
+
+        let mouse_pos = ggez::input::mouse::position(ctx);
+        let cell_x = (mouse_pos.x / (SCREEN_WIDTH as f32 / CELLS_WIDTH as f32)) as usize;
+        let cell_y = (mouse_pos.y / (SCREEN_HEIGHT as f32 / CELLS_HEIGHT as f32)) as usize;
+        if ggez::input::mouse::button_pressed(ctx, ggez::input::mouse::MouseButton::Left) {
+            self.board[cell_y][cell_x] = true;
+        } else if ggez::input::mouse::button_pressed(ctx, ggez::input::mouse::MouseButton::Right) {
+            self.board[cell_y][cell_x] = false;
+        }
+
         Ok(())
     }
 
@@ -75,17 +91,28 @@ impl ggez::event::EventHandler<ggez::GameError> for MainGame {
         ggez::graphics::present(ctx)?;
         Ok(())
     }
+
+    fn key_down_event(
+        &mut self,
+        _ctx: &mut ggez::Context,
+        keycode: ggez::event::KeyCode,
+        _keymods: ggez::event::KeyMods,
+        _repeat: bool,
+    ) {
+        if keycode == ggez::event::KeyCode::Space {
+            self.started = !self.started;
+        }
+    }
 }
 
 impl MainGame {
     pub fn new() -> ggez::GameResult<MainGame> {
-        let mut b = [[false; CELLS_WIDTH]; CELLS_HEIGHT];
-        b.iter_mut().for_each(|line| {
-            line.iter_mut().for_each(|cell| {
-                *cell = rand::random();
-            })
-        });
-        Ok(Self { board: b, cycle: 0 })
+        let b = [[false; CELLS_WIDTH]; CELLS_HEIGHT];
+        Ok(Self {
+            board: b,
+            cycle: 0,
+            started: false,
+        })
     }
 
     pub fn advance_step(&mut self) {
@@ -105,6 +132,10 @@ impl MainGame {
         }
         self.board = new_board.board;
         self.cycle += 1;
+    }
+
+    pub fn draw_pixel(&mut self, x: usize, y: usize) {
+        self.board[y][x] = !self.board[y][x];
     }
 
     fn get_neighbors(&self, coordinates: (usize, usize)) -> usize {
