@@ -1,6 +1,6 @@
-const CELLS_WIDTH: usize = 40;
-const CELLS_HEIGHT: usize = 40;
-const SCREEN_WIDTH: usize = 800;
+const CELLS_WIDTH: usize = 90;
+const CELLS_HEIGHT: usize = 60;
+const SCREEN_WIDTH: usize = 1200;
 const SCREEN_HEIGHT: usize = 800;
 
 #[derive(Clone)]
@@ -22,13 +22,18 @@ impl ggez::event::EventHandler<ggez::GameError> for MainGame {
             }
         }
 
-        let mouse_pos = ggez::input::mouse::position(ctx);
-        let cell_x = (mouse_pos.x / (SCREEN_WIDTH as f32 / CELLS_WIDTH as f32)) as usize;
-        let cell_y = (mouse_pos.y / (SCREEN_HEIGHT as f32 / CELLS_HEIGHT as f32)) as usize;
-        if ggez::input::mouse::button_pressed(ctx, ggez::input::mouse::MouseButton::Left) {
-            self.board[cell_y][cell_x] = true;
-        } else if ggez::input::mouse::button_pressed(ctx, ggez::input::mouse::MouseButton::Right) {
-            self.board[cell_y][cell_x] = false;
+        if !self.started {
+            let mouse_pos = ggez::input::mouse::position(ctx);
+            let cell_x = (mouse_pos.x / (SCREEN_WIDTH as f32 / CELLS_WIDTH as f32)) as usize;
+            let cell_y = (mouse_pos.y / (SCREEN_HEIGHT as f32 / CELLS_HEIGHT as f32)) as usize;
+            if ggez::input::mouse::button_pressed(ctx, ggez::input::mouse::MouseButton::Left) {
+                self.board[cell_y][cell_x] = true;
+            } else if ggez::input::mouse::button_pressed(
+                ctx,
+                ggez::input::mouse::MouseButton::Right,
+            ) {
+                self.board[cell_y][cell_x] = false;
+            }
         }
 
         Ok(())
