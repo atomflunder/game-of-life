@@ -9,10 +9,11 @@ pub struct MainGame {
     pub board: [[bool; CELLS_WIDTH]; CELLS_HEIGHT],
     pub cycle: usize,
     pub started: bool,
+    pub fps: u32,
 }
 impl ggez::event::EventHandler<ggez::GameError> for MainGame {
     fn update(&mut self, ctx: &mut ggez::Context) -> ggez::GameResult {
-        while ggez::timer::check_update_time(ctx, 3) {
+        while ggez::timer::check_update_time(ctx, self.fps) {
             if self.started {
                 self.advance_step();
                 ggez::graphics::set_window_title(
@@ -131,6 +132,47 @@ impl ggez::event::EventHandler<ggez::GameError> for MainGame {
                 }
             }
         }
+
+        match keycode {
+            ggez::event::KeyCode::Up => {
+                if self.fps < 60 {
+                    self.fps += 1;
+                }
+            }
+            ggez::event::KeyCode::Down => {
+                if self.fps > 1 {
+                    self.fps -= 1;
+                }
+            }
+            ggez::event::KeyCode::Key1 => {
+                self.fps = 1;
+            }
+            ggez::event::KeyCode::Key2 => {
+                self.fps = 2;
+            }
+            ggez::event::KeyCode::Key3 => {
+                self.fps = 3;
+            }
+            ggez::event::KeyCode::Key4 => {
+                self.fps = 4;
+            }
+            ggez::event::KeyCode::Key5 => {
+                self.fps = 5;
+            }
+            ggez::event::KeyCode::Key6 => {
+                self.fps = 6;
+            }
+            ggez::event::KeyCode::Key7 => {
+                self.fps = 7;
+            }
+            ggez::event::KeyCode::Key8 => {
+                self.fps = 8;
+            }
+            ggez::event::KeyCode::Key9 => {
+                self.fps = 9;
+            }
+            _ => (),
+        }
     }
 }
 
@@ -141,6 +183,7 @@ impl MainGame {
             board: b,
             cycle: 0,
             started: false,
+            fps: 2,
         })
     }
 
