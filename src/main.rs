@@ -107,6 +107,30 @@ impl ggez::event::EventHandler<ggez::GameError> for MainGame {
         if keycode == ggez::event::KeyCode::Space {
             self.started = !self.started;
         }
+
+        if keycode == ggez::event::KeyCode::Return && !self.started {
+            for line in &mut self.board {
+                for cell in line {
+                    *cell = rand::random();
+                }
+            }
+        }
+
+        if keycode == ggez::event::KeyCode::Delete && !self.started {
+            for line in &mut self.board {
+                for cell in line {
+                    *cell = false;
+                }
+            }
+        }
+
+        if keycode == ggez::event::KeyCode::Insert && !self.started {
+            for line in &mut self.board {
+                for cell in line {
+                    *cell = true;
+                }
+            }
+        }
     }
 }
 
